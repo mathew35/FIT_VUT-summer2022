@@ -14,7 +14,7 @@ def camel_to_snake_case(name):
 
     inbetween = re.compile(r'''
                             (
-                             (?<=[a-z](?=[A-Z]))  # between a lowercase and
+                             (?<=[a-z](?=[A-Z])) # between a lowercase and
                                                  # an uppercase letter
                              |                   # or
                              (?=[A-Z](?=[a-z]))  # in front of an uppercase
@@ -36,9 +36,9 @@ def not_both_titles(names_string):
     # a name that is either preceded by [Pp]rof./[Dd]oc. and followed by Ph.D.
     # or other name with potential titles
     pat = re.compile(r'''
-                      (?=())                                        # it is either
-                                                                 # or
-                                                               # it is
+                      (?:[Pp]rof|[Dd]oc)\.[^,]*?,\sPh\.D\.  # it is either
+                      |                                     # or
+                      \s?([^,]+(?:,\sPh\.D\.)?),?\s*      # it is
                       ''', re.X)
     return [g1 for g1 in pat.findall(names_string) if g1]
 
