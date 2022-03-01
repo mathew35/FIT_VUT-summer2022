@@ -29,16 +29,16 @@ def solfege(title_hymn):
     """
 
     # the input string partitioned to the title (if given) and the actual hymn
-    possible_title, sep, hymn = title_hymn, '',''                # vase reseni
+    possible_title, sep, hymn = title_hymn.rpartition(': ')                    # vase reseni
 
     # the hymn as a list of strings separated by ' '
-    hymn_list = ''                                               # vase reseni
+    hymn_list = hymn.split(' ')                                                # vase reseni
     
     # skipping always two strings, and ending 3 strings from the end
-    skip2 = ''                                                   # vase reseni
+    skip2 = hymn_list[:-3:3]                                                   # vase reseni
 
     # the skip2 list as a string, ', ' as a separator
-    skip2_str = ''                                               # vase reseni
+    skip2_str = ', '.join(skip2)                                               # vase reseni
 
     return skip2_str
 
