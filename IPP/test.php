@@ -10,7 +10,7 @@ $dirs = glob($argv[1].'/*/');
 foreach ($dirs as $i) {    
     $folder = glob($i.'/*.out');
     for($i = 0; $i < sizeof($folder); $i++){
-        system("echo \"${NC}\"$folder[$i]\"\"");
+        #system("echo \"${NC}\"$folder[$i]\"\"");
         $tests = $folder[$i];
         $length = strlen($tests) - 4;
         $src = substr($tests,0,$length).".src";
@@ -33,6 +33,7 @@ foreach ($dirs as $i) {
                 }
             }
             else{
+                system("echo \"${NC}\"$folder[$i]\"\"");
                 system("echo \"${RED}FAIL\"");
             }
 
@@ -45,6 +46,7 @@ foreach ($dirs as $i) {
                 #system("echo \"${GREEN}PASS\"");
             }
             else{
+                system("echo \"${NC}\"$folder[$i]\"\"");
                 system("echo \"${RED}FAIL\"");
             }    
         }
