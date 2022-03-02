@@ -1,6 +1,5 @@
 <?PHP
   ini_set('display_errors', 'stderr');
-  $order = 0;
   $NOP = ['CREATEFRAME','PUSHFRAME','POPFRAME','RETURN','BREAK'];
   $V = ['DEFVAR','POPS'];
   $S = ['PUSHS','WRITE','EXIT','DPRINT'];
