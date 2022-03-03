@@ -1,7 +1,6 @@
 package ija.homework1.uml;
 
 public class UMLAttribute extends Element{
-    //private String name;
     private UMLClassifier type;
     public UMLAttribute(String name, UMLClassifier type){
         super(name);

@@ -1,7 +1,7 @@
 package ija.homework1.uml;
 
 public class UMLClassifier extends Element{
-    private boolean isUserDefined;
+    private boolean isUserDefined = false;
     public UMLClassifier(String name, boolean isUserDefined){
         super(name);
         this.isUserDefined = isUserDefined;

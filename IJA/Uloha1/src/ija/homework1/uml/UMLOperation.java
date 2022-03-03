@@ -1,25 +1,29 @@
 package ija.homework1.uml;
 
 import java.util.List;
+import java.util.ArrayList;
 
-public class UMLOperation extends UMLAttribute{
-    //private String name;
-    //private UMLClassifier type;
-    //private UMLAttribute inst;
-    //private List<UMLAttribute> args;
+public final class UMLOperation extends UMLAttribute{
+    private ArrayList<UMLAttribute> args;
     public UMLOperation(String name, UMLClassifier type){
         super(name, type);
     }
     public static UMLOperation create(String name, UMLClassifier type, UMLAttribute... args){
         UMLOperation inst = new UMLOperation(name, type);
-        
-        //inst.args = args;
+        inst.args = new ArrayList<UMLAttribute>();
+        for(UMLAttribute arg : args){
+            inst.args.add(arg);
+        }
         return inst;        
     }
     public boolean addArgument(UMLAttribute arg){
-        return false;
+        if(this.args.contains(arg)){
+            return false;
+        }
+        this.args.add(arg);
+        return true;
     }
-    public List<UMLAttribute> getArguments(){
-        return null;
+    public final List<UMLAttribute> getArguments(){
+        return this.args;
     }
 }

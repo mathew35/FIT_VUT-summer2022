@@ -8,7 +8,6 @@ public class Element {
     public String getName(){
         return this.name;
     }
-    private String newName;
     public void rename(String newName){
         this.name = newName;
     }
