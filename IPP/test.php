@@ -3,7 +3,7 @@ $RED = '\033[0;31m';
 $GREEN = '\033[0;32m';  
 $NC = '\033[0m';
 if($argv[1] == "--help"){
-    echo("Usage: test.php [test_dir] [options]");
+    echo("Usage: test.php [test_dir] [options]\n");
 }
 #$folder = scandir($argv[1]);
 $dirs = glob($argv[1].'/*/');

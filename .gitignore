@@ -1,4 +1,8 @@
 IJA/Uloha1/.vs/
+IJA/Uloha1/JUnit.sh
+IJA/Uloha1/build/
+IJA/Uloha1/doc/
+IJA/Uloha1/lib/
 IJA/xvrabl05.zip
 IPK/Projekt1/.vscode/
 IPK/Projekt1/hinfosvc
@@ -6,10 +10,12 @@ IPK/Projekt1/xvrabl05.zip
 IPP/Testyoptions
 IPP/delta.xml
 IPP/ipp-2022-tests/
+IPP/is_it_ok.sh
+IPP/is_it_ok/
+IPP/jexamxml/
 IPP/parse.out
 IPP/parse.out.log
 IPP/xvrabl05.tgz
-ISJ/isj_proj3_xvrabl05.py
 IVS/Projekt1/assignment/CMakeLists.txt
 IVS/Projekt1/assignment/CMakeLists.txt.in
 IVS/Projekt1/assignment/CodeCoverage.cmake
@@ -20,5 +26,8 @@ IVS/Projekt1/assignment/tdd_code.h
 IVS/Projekt1/assignment/tdd_tests.cpp
 IVS/Projekt1/assignment/white_box_code.cpp
 IVS/Projekt1/assignment/white_box_code.h
-IVS/Projekt1/ivs_project_1_2022.zip
 IVS/Projekt1/xvrabl05.zip
+IJA/Uloha2.xlsx
+IJA/Uloha2_template.xlsx
+IJA/requirements-template.pdf
+IJA/xvrabl05.pdf
