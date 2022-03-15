@@ -1,13 +1,22 @@
 <?PHP
   ini_set('display_errors', 'stderr');
+  #no instruction opcodes
   $NOP = ['CREATEFRAME','PUSHFRAME','POPFRAME','RETURN','BREAK'];
+  #Opcodes followed by <var>
   $V = ['DEFVAR','POPS'];
+  #Opcodes followed by <symb>
   $S = ['PUSHS','WRITE','EXIT','DPRINT'];
+  #Opcodes followed by <label>
   $L = ['CALL','LABEL','JUMP'];
+  #Opcodes followed by <var> <symb>
   $VS = ['MOVE','NOT','INT2CHAR','TYPE','STRLEN'];
+  #Opcodes followed by <var> <type>
   $VT = ['READ'];
-  $VSS = ['ADD','SUB','MUL','IDIV','LT','GT','EQ','AND','OR','STRI2INT','CONCAT','GETCHAR','SETCHAR'];
+  #Opcodes followed by <var> <symb> <symb>
+  $VSS = ['ADD','SUB','MUL','IDIV','LT','sGT','EQ','AND','OR','STRI2INT','CONCAT','GETCHAR','SETCHAR'];
+  #Opcodes followed by <label> <symb> <symb>
   $LSS = ['JUMPIFEQ','JUMPIFNEQ'];
+  #ALL opcodes
   $OP = array_merge($NOP,$V,$S,$L,$VS,$VT,$VSS,$LSS);
   
   # rm_hidden 
