@@ -13,7 +13,7 @@ u39_r:- write('Zadej LIN: '),read(LIN),
 	write('Zadej VIN1: '),read(VIN1),
 	write('Zadej VIN2: '),read(VIN2),
 	u39(LIN,VIN1,VIN2,VOUT),write(VOUT).
-u39(LIN,VIN1,VIN2,VOUT):- maxlist(LIN,VOUT,VIN1,VIN2).
+u39(LIN,VIN1,VIN2,VOUT):- maxlist(LIN,VOUT,VIN1,VIN2),!.
 maxlist([X,Y|Z],M,MAX,MIN):- maxlist([Y|Z],Mrest,MAX,MIN),max(X,Mrest,M,MAX,MIN).
 maxlist([X],Z,MAX,MIN):- MAX>X,MIN<X,Z is X;Z is 0.
 maxlist([],0,MAX,MIN). 
