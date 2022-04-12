@@ -53,20 +53,9 @@ def getArg(arg):
     return ret
 #Prace s ramci, volani funkci
 def MOVE(args):
-    arg1 = args[0][1].text.split('@')
-    if args[1][1].get("type") == 'var':
-        arg = args[1][1].text.split('@')
-        varT = globals()[arg[0]][arg[1]]
-        Type = var.Type
-        Value = var.Value
-    else:
-        Type = args[1][1].get("type")
-        Value = args[1][1].text    
-    var = globals()[arg1[0]]
-    if not arg1[1] in var:
-        exit(54)
-    var = var[arg1[1]]
-    var.set(Type,Value)
+    var = getVar(args[0][1])
+    arg1 = getArg(args[1][1])
+    var.copy(arg1)
 def CREATEFRAME(args):
     global TF
     TF = {}
@@ -308,13 +297,45 @@ def WRITE(args):
     print(out,end='')
 #Prace s retezci
 def CONCAT(args):
-    pass
+    var = getVar(args[0][1])
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != 'string' or arg2.Type != 'string':
+        exit(53)
+    Type = 'string'
+    Value = arg1.Value + arg2.Value
+    var.set(Type,Value)
 def STRLEN(args):
-    pass
+    var = getVar(args[0][1])
+    arg1 = getArg(args[1][1])
+    if arg1.Type != 'string':
+        exit(53)
+    Type = 'int'
+    Value = len(arg1.Value)
+    var.set(Type,Value)
 def GETCHAR(args):
-    pass
+    var = getVar(args[0][1])
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != 'string' or arg2.Type != 'string':
+        exit(53)
+    if len(arg1.Value) - 1 < arg2.Value:
+        exit(58)
+    Type = 'string'
+    Value = arg1.Value[arg2.Value]
+    var.set(Type,Value)
 def SETCHAR(args):
-    pass
+    var = getVar(args[0][1])
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if var.Type != 'string' or arg2.Type != 'string':
+        exit(53)
+    if len(var.Value) - 1 < arg1.Value or len(arg2.Value) == 0:
+        exit(58)
+    Value = var.Value
+    Value[arg1.Value] = arg2.Value[0]
+    Type = var.Type
+    var.set(Type,Value)    
 #Prace s type
 def TYPE(args):
     arg = getArg(args[1][1])
