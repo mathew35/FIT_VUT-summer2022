@@ -1,20 +1,45 @@
+## Interpret XML reprezentácia kodu
+# autor: Matúš Vráblik
+# login: xvrabl05
+##
+
+import sys
+
+# Globálne premenné
 global GF
 global LF
 global TF
 global Order
+global Labels
 GF = {}
 LF = None
 TF = None
 Order = 0
+Labels = {}
+
+# Zásobníky
 DataStack = []
 CallStack = []
 LFStack = []
-global Labels
-Labels = {}
+
+# Trieda instructionHandler obsahuje funkciu handle() spracuje inštrukciu podľa jej operačného kódu(OPCODE). Konkrétna funkcia sa volá pomocou globals()[OPCODE].
+#   Pri každom volaní sa zvýši čítač inštrukcií o 1. Tento čítač sa vracia po interpretovaní inštrukcie.
+class instructionHandler:
+    global Labels
+    labs = Labels
+    def handle(self, instr, order):
+        global Order
+        Order = order + 1
+        globals()[instr[1][0]](instr[1][1])
+        return Order
+# Trieda pre premenné (konštanty sa tiež ukladajú v tejto triede)
+#   set() - nastavý atribúty Type,Value podľa argumentov volania a v prípade typov 'int','bool' a 'float' prevedie atribút Value na adekvátny typ
+#   copy() - nahradí všetky atribúty aktuálnej premennej atribútmi zo zdrojovej premennej "source"
 class variable:
     Type = None
     Value = None
     Float = None
+
     def set(self,Type,Value):
         self.Type = Type
         self.Value = Value
@@ -28,11 +53,13 @@ class variable:
             if self.Value == 'true':
                 tmp = True
             self.Value = tmp
+
     def copy(self,source):
         self.Type = source.Type
         self.Value = source.Value
         self.Float = source.Float
 
+# getVar() - Funkcia na získanie hodnoty premennej <var>. Kontroluje existenciu daného rámca ako aj existenciu premennej v danom rámci.
 def getVar(var):
     if var.get("type") == 'var':
         arg = var.text.split('@')
@@ -44,21 +71,26 @@ def getVar(var):
         if not foo:
             exit(54)
         return frame[arg[1]] 
-    return False
+    exit(53)
+# getArg() - Funckia na získanie hodnoty premennej alebo konštanty <symb>. Ak má symbol typ "var" zavolá funkciu getVar(),
+#   inak vytvorí premennú triedy 'variable' a zavolá fuknciu set() s typom a hodnotou konstanty.
 def getArg(arg):
     if arg.get("type") == 'var':
         return getVar(arg)
     ret = variable()
     ret.set(arg.get("type"),arg.text);
     return ret
+
 #Prace s ramci, volani funkci
 def MOVE(args):
     var = getVar(args[0][1])
     arg1 = getArg(args[1][1])
     var.copy(arg1)
+
 def CREATEFRAME(args):
     global TF
     TF = {}
+
 def PUSHFRAME(args):
     global TF
     global LF
@@ -67,6 +99,7 @@ def PUSHFRAME(args):
     LF = TF
     LFStack.append(LF)
     TF = None
+
 def POPFRAME(args):
     global TF
     global LF
@@ -78,6 +111,7 @@ def POPFRAME(args):
         LFStack.append(LF)
     except:
         LF = None
+
 def DEFVAR(args):
     arg = args[0][1].text.split('@')
     frame = globals()[arg[0]]
@@ -87,27 +121,26 @@ def DEFVAR(args):
     except:
         exit(55)
     frame[arg[1]] = variable()
+
 def CALL(args):
     global Order
     CallStack.append(Order + 1)
     if not args[0][1].text in Labels:
         exit(52)
     Order = Labels[args[0][1].text]
+
 def RETURN(args):
     global Order
     try:
         Order = CallStack.pop()
     except:
         exit(56)
+
 #Prace s datovym zasobnikem
 def PUSHS(args):
-    loc = getVar(args[0][1])
-    var = variable()
-    var.set(args[0][1].get('type'),args[0][1].text)
-    if loc:
-        var.copy(loc)
+    loc = getArg(args[0][1])
+    DataStack.append(loc)
     
-    DataStack.append(var)
 def POPS(args):
     var = getVar(args[0][1])
     try:
@@ -124,10 +157,8 @@ def ADD(args):
         if arg1.Type != 'float' or arg2.Type != 'float':
             exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = arg1.Type
-    var.Value = arg1.Value+arg2.Value
+    var.set(arg1.Type, arg1.Value + arg2.Value)
+
 def SUB(args):
     arg1 = getArg(args[1][1])
     arg2 = getArg(args[2][1])
@@ -135,10 +166,8 @@ def SUB(args):
         if arg1.Type != 'float' or arg2.Type != 'float':
             exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = arg1.Type
-    var.Value = arg1.Value-arg2.Value
+    var.set(arg1.Type, arg1.Value - arg2.Value)
+
 def MUL(args):
     arg1 = getArg(args[1][1])
     arg2 = getArg(args[2][1])
@@ -146,108 +175,93 @@ def MUL(args):
         if arg1.Type != 'float' or arg2.Type != 'float':
             exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = arg1.Type
-    var.Value = arg1.Value*arg2.Value
+    var.set(arg1.Type, arg1.Value * arg2.Value)
+
 def IDIV(args):
     arg1 = getArg(args[1][1])
     arg2 = getArg(args[2][1])
     if arg1.Type != 'int' or arg2.Type != 'int':
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    if args[2][1].text == '0':
+    if arg2.Value == '0':
         exit(57)
-    var.Type = arg1.Type
-    var.Value = arg1.Value/arg2.Value
+    var.set(arg1.Type, arg1.Value / arg2.Value)
+
 def LT(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != args[2][1].get("type"):
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != arg2.Type:
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = args[1][1].text < args[2][1].text
+    var.set(arg1.Type, arg1.Value < arg2.Value)
+
 def GT(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != args[2][1].get("type"):
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != arg2.Type:
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = args[1][1].text > args[2][1].text
+    var.set(arg1.Type, arg1.Value > arg2.Value)
+
 def EQ(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != args[2][1].get("type"):
-        exit(53)
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != arg2.Type:
+        if arg1.Type != 'nil' and arg2.Type != 'nil':
+            exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = args[1][1].text == args[2][1].text
+    var.set(arg1.Type, arg1.Value == arg2.Value)
+    
 def AND(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != 'bool' or args[2][1].get("type") != 'bool':
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != 'bool' or arg2.Type != 'bool':
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = args[1][1].text and args[2][1].text
+    var.set(arg1.Type, arg1.Value and arg2.Value)
+
 def OR(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != 'bool' or args[2][1].get("type") != 'bool':
+    arg1 = getArg(args[1][1])
+    arg2 = getArg(args[2][1])
+    if arg1.Type != 'bool' or arg2.Type != 'bool':
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = args[1][1].text or args[2][1].text
+    var.set(arg1.Type, arg1.Value or arg2.Value)
+    
 def NOT(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != 'bool':
+    arg1 = getArg(args[1][1])
+    if arg1.Type != 'bool':
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
-    var.Type = Type
-    var.Value = not args[1][1].text
+    var.set(arg1.Type, not arg1.Value)
+    
 def INT2CHAR(args):
     arg1 = getArg(args[1][1])
     var = getVar(args[0][1])
     if arg1.Type != 'int':
         exit(53)
-    if not var:
-        exit(54)
     try:
         value = chr(int(arg1.Value))
     except:
         exit(58)
-    var.Type = 'string'
-    var.Value = value
+    var.set('string', value)
+
 def STRI2INT(args):
-    Type = args[1][1].get("type")
-    if args[1][1].get("type") != 'string':
+    arg1 = getArg(args[1][1])
+    if arg1.Type != 'string':
         exit(53)
     var = getVar(args[0][1])
-    if not var:
-        exit(54)
     try:
         value = ord(int(args[1][1].text))
     except:
         exit(58)
-    var.Type = 'int'
-    var.Value = value
+    var.set('int', value)
+
 #Vstupne-vystupni instrukce
 def READ(args):
-    Type = args[1][1].text   
+    arg1 = getArg(args[1][1])
+    Type = arg1.Type   
     var = getVar(args[0][1])
-    if not var:
-        exit(54) 
     try:
         Input = input()
     except:
@@ -267,19 +281,12 @@ def READ(args):
         Value = 'nil@nil'
     if Value == None:
         exit(58)
-    var.Type = Type
-    var.Value = Value
+    var.set(Type, Value)
+
 def WRITE(args):
-    var = getVar(args[0][1])
-    if var :
-        Value = var.Value
-        Type = var.Type
-    else:
-        Value = args[0][1].text
-        Type = args[0][1].get('type')
-        x = variable()
-        x.set(Type,Value)
-        Value = x.Value
+    var = getArg(args[0][1])
+    Type = var.Type
+    Value = var.Value
     if Type == 'bool':
         out = 'false'
         if Value:
@@ -295,6 +302,7 @@ def WRITE(args):
     if Value == None:
         out = ''
     print(out,end='')
+
 #Prace s retezci
 def CONCAT(args):
     var = getVar(args[0][1])
@@ -305,6 +313,7 @@ def CONCAT(args):
     Type = 'string'
     Value = arg1.Value + arg2.Value
     var.set(Type,Value)
+
 def STRLEN(args):
     var = getVar(args[0][1])
     arg1 = getArg(args[1][1])
@@ -313,6 +322,7 @@ def STRLEN(args):
     Type = 'int'
     Value = len(arg1.Value)
     var.set(Type,Value)
+
 def GETCHAR(args):
     var = getVar(args[0][1])
     arg1 = getArg(args[1][1])
@@ -324,6 +334,7 @@ def GETCHAR(args):
     Type = 'string'
     Value = arg1.Value[arg2.Value]
     var.set(Type,Value)
+
 def SETCHAR(args):
     var = getVar(args[0][1])
     arg1 = getArg(args[1][1])
@@ -335,7 +346,8 @@ def SETCHAR(args):
     Value = var.Value
     Value[arg1.Value] = arg2.Value[0]
     Type = var.Type
-    var.set(Type,Value)    
+    var.set(Type,Value)  
+
 #Prace s type
 def TYPE(args):
     arg = getArg(args[1][1])
@@ -344,17 +356,20 @@ def TYPE(args):
     if Type == 'nil':
         Type = ''
     var.set('string',Type);
+
 #Instrukce rizeni toku
 def LABEL(args):
     global Order
     label = args[0][1].text
     Labels[label] = Order
+
 def JUMP(args):
     global Order
     try:
         Order = Labels[args[0][1].text]
     except:
         exit(52)
+
 def JUMPIFEQ(args):
     global Order
     label = args[0][1].text
@@ -370,6 +385,7 @@ def JUMPIFEQ(args):
             Order = Labels[label]
         except:
             exit(52) 
+
 def JUMPIFNEQ(args):
     global Order
     label = args[0][1].text
@@ -385,16 +401,32 @@ def JUMPIFNEQ(args):
             Order = Labels[label]
         except:
             exit(52) 
+
 def EXIT(args):
     arg1 = getArg(args[0][1])
     if not (0<=arg1.Value and arg1.Value<=49):
         exit(57)
     exit(arg1.Value)
+
 #Ladici instrukce
 def DPRINT(args):
-    pass
+    arg1 = getArg(args[0][1])
+    try:
+        print(arg1.Value, file = sys.stderr)
+    except:
+        exit(56)
+
 def BREAK(args):
-    pass
+    try:
+        print("GF ", end='', file = sys.stderr)
+        print(GF, end='', file = sys.stderr)
+        print(", LF ", end='', file = sys.stderr)
+        print(LF, end='', file = sys.stderr)
+        print(", TF ", end='', file = sys.stderr)
+        print(TF, end='', file = sys.stderr)
+    except:
+        exit(56)
+
 #FLOAT bonusove rozsireni instrukce
 def INT2FLOAT(args):
     var = getVar(args[0][1])
@@ -407,6 +439,7 @@ def INT2FLOAT(args):
         exit(53)
     var.Type = 'float'
     var.Value = float(arg1.Value)
+
 def FLOAT2INT(args):
     var = getVar(args[0][1])
     arg1 = getArg(args[1][1])
@@ -418,6 +451,7 @@ def FLOAT2INT(args):
         exit(53)
     var.Type = 'int'
     var.Value = int(arg1.Value)
+
 def DIV(args):
     arg1 = getArg(args[1][1])
     arg2 = getArg(args[2][1])
@@ -429,11 +463,13 @@ def DIV(args):
     if arg2.Value == 0:
         exit(57)
     var.Type = arg1.Type
-    var.Value = arg1.Value/arg2.Value
+    var.Value = arg1.Value / arg2.Value
+
 #STACK bonusove rozsireni instrukce
 def CLEARS(args):
     global DataStack
     DataStack = []
+
 def ADDS(args):
     try:
         arg2 = DataStack.pop()
@@ -441,13 +477,13 @@ def ADDS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != 'float' and arg1.Type != 'int':
         exit(53)
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value + arg2.Value
+    var.set(arg1.Type, arg1.Value + arg2.Value)
     DataStack.append(var)
+
 def SUBS(args):
     try:
         arg2 = DataStack.pop()
@@ -455,13 +491,13 @@ def SUBS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != 'float' and arg1.Type != 'int':
         exit(53)
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value - arg2.Value
+    var.set(arg1.Type, arg1.Value - arg2.Value)
     DataStack.append(var)
+
 def MULS(args):
     try:
         arg2 = DataStack.pop()
@@ -469,13 +505,13 @@ def MULS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != 'float' and arg1.Type != 'int':
         exit(53)
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value * arg2.Value
+    var.set(arg1.Type, arg1.Value * arg2.Value)
     DataStack.append(var)
+
 def IDIVS(args):
     try:
         arg2 = DataStack.pop()
@@ -483,13 +519,13 @@ def IDIVS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != 'float' and arg1.Type != 'int':
         exit(53)
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value / arg2.Value
+    var.set(arg1.Type, arg1.Value / arg2.Value)
     DataStack.append(var)
+
 def LTS(args):
     try:
         arg2 = DataStack.pop()
@@ -497,11 +533,11 @@ def LTS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = 'bool'
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value < arg2.Value
+    var.set('bool', arg1.Value < arg2.Value)
     DataStack.append(var)
+
 def GTS(args):
     try:
         arg2 = DataStack.pop()
@@ -509,11 +545,11 @@ def GTS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = 'bool'
     if arg1.Type != arg2.Type:
         exit(53)
-    var.Value = arg1.Value > arg2.Value
+    var.set('bool', arg1.Value > arg2.Value)
     DataStack.append(var)
+
 def EQS(args):
     try:
         arg2 = DataStack.pop()
@@ -521,12 +557,12 @@ def EQS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = 'bool'
     if arg1.Type != arg2.Type:
         if arg1.Type != 'nil' and arg2.Type != 'nil':
             exit(53)
-    var.Value = arg1.Value == arg2.Value
+    var.set('bool', arg1.Value == arg2.Value)
     DataStack.append(var)
+
 def ANDS(args):
     try:
         arg2 = DataStack.pop()
@@ -534,11 +570,11 @@ def ANDS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != arg2.Type or arg1.Type != 'bool':
         exit(53)
-    var.Value = arg1.Value and arg2.Value
+    var.set(arg1.Type, arg1.Value and arg2.Value)
     DataStack.append(var)
+
 def ORS(args):
     try:
         arg2 = DataStack.pop()
@@ -546,11 +582,11 @@ def ORS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = arg1.Type
     if arg1.Type != arg2.Type or arg1.Type != 'bool':
         exit(53)
-    var.Value = arg1.Value or arg2.Value
+    var.set(arg1.Type, arg1.Value or arg2.Value)
     DataStack.append(var)
+
 def NOTS(args):
     try:
         arg1 = DataStack.pop()
@@ -559,23 +595,24 @@ def NOTS(args):
     var = variable()
     if arg1.Type != 'bool':
         exit(53)
-    var.Type = 'bool'
-    var.Value = not arg1.Value
+    var.set('bool', not arg1.Value)
     DataStack.append(var)
+
 def INT2CHARS(args):
     try:
         arg1 = DataStack.pop()
     except:
         exit(56)
     var = variable()
-    var.Type = 'string'
     if arg1.Type != 'int':
         exit(53)
     try:
-        var.Value = chr(arg1.Value)
+        Value = chr(arg1.Value)
     except:
         exit(58)
+    var.set('string', Value)
     DataStack.append(var)
+
 def STRI2INTS(args):
     try:
         arg2 = DataStack.pop()
@@ -583,14 +620,15 @@ def STRI2INTS(args):
     except:
         exit(56)
     var = variable()
-    var.Type = 'int'
     if arg1.Type != 'string' or arg2.Type != 'int':
         exit(53)
     try:
-        var.Value = ord(arg1.Value[arg2.Value])
+        Value = ord(arg1.Value[arg2.Value])
     except:
         exit(58)
+    var.set('int', Value)
     DataStack.append(var)
+    
 def JUMPIFEQS(args):
     global Order
     EQS([])
@@ -604,6 +642,7 @@ def JUMPIFEQS(args):
             Order = Labels[label]
         except:
             exit(52)
+
 def JUMPIFNEQS(args):
     global Order
     EQS([])
@@ -617,14 +656,3 @@ def JUMPIFNEQS(args):
             Order = Labels[label]
         except:
             exit(52)
-
-class instructionHandler:
-    global Labels
-    labs = Labels
-    def handle(self, instr, order):
-        global Order
-        Order = order + 1
-        globals()[instr[1][0]](instr[1][1])
-        #print(Labels)
-        #print(Order)
-        return Order

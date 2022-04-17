@@ -61,3 +61,10 @@ foreach ($dirs as $i) {
 }
 exit(0);
 ?>
+<html>
+<head>
+    <title><?="Nazov html"?></title>
+</head>
+<body>
+</body>
+</html
