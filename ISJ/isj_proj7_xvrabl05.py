@@ -9,26 +9,18 @@ import collections
 
 my_counter = collections.Counter()
 
-def log_and_count(counts,key=None):
+def log_and_count(*argsouter,**kwargsouter):
     def decorators(func):
         def inner(*args,**kwargs):
-            if key:
-                counts[key] += 1
+            if 'key' in kwargsouter:
+                kwargsouter['counts'][kwargsouter['key']] += 1
+            elif argsouter:
+                print(argsouter)
+                kwargsouter['counts'][list(argsouter)[0]] += 1
             else:
-                counts[func.__name__] += 1
+                kwargsouter['counts'][func.__name__] += 1
             print("called "+str(func.__name__)+" with "+str(args)+" and "+str(kwargs))
-            a, b = None,None
-            if args:
-                a = args[0]
-            if kwargs:
-                b = kwargs['b']
-                if not a:
-                    a,b = kwargs['a'], kwargs['b']
-            if not b:
-                fnc = func(a)
-            else:
-                fnc = func(a,b)
-            return fnc
+            return func(*args, **kwargs)
         return inner
     return decorators
 
@@ -47,7 +39,7 @@ def f3(a, b=5):
 f1(2)
 f2(2, b=4)
 f1(a=2, b=4)
-f2(4)
+f2(4,5)
 f2(5)
 f3(5)
 f3(5,4)
